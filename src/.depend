@@ -1,0 +1,2 @@
+main.o: main.cpp injector.hpp
+injector.o: injector.cpp injector.hpp
