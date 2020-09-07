@@ -1,4 +1,3 @@
-
 CC:=g++
 CC_FLAGS:=-std=c++1z -Wall -Wextra -pedantic -g
 LD_FLAGS:=-g
