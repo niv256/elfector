@@ -1,8 +1,11 @@
 #include <elf.h>
+#include <fcntl.h>
 #include <string>
 #include <vector>
 
 #pragma once
+
+using namespace std;
 
 class Elf_target {
   int fd;
@@ -35,4 +38,9 @@ public:
   };
 
   code_cave_t find_biggest_code_cave(void);
+
+  bool write_shellcode(vector<unsigned char> &shellcode,
+                       const code_cave_t &code_cave);
+
+  void change_entry_point(uint64_t new_entry_point);
 };

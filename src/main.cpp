@@ -4,6 +4,11 @@
 
 using namespace std;
 
+vector<unsigned char> shellcode{
+    0xb8, 0x40, 0x10, 0x40, 0x00, // mov eax, 0x401040
+    0xff, 0xe0                    // jmp eax
+};
+
 int main(int argc, char *argv[]) {
   if (argc != 2) {
     cout << "wrong arguments" << endl;
@@ -19,8 +24,9 @@ int main(int argc, char *argv[]) {
   }
 
   Elf_target::code_cave_t code_cave = target.find_biggest_code_cave();
-  cout << "offset: 0x" << hex << code_cave.offset << endl;
-  cout << "size: 0x" << hex << code_cave.size << endl;
-
-  cout << "executed" << endl;
+  if (!target.write_shellcode(shellcode, code_cave)) {
+    cout << "can't find a big enough code cave" << endl;
+    return 3;
+  }
+  target.change_entry_point(0x400000 + code_cave.offset);
 }
