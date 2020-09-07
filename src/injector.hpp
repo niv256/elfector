@@ -26,4 +26,13 @@ public:
   void load_program_headers(std::vector<T> &vector, int count);
 
   template <typename T> T get_header_type();
+
+  bool is_elf(void);
+
+  struct code_cave_t {
+    size_t offset;
+    size_t size;
+  };
+
+  code_cave_t find_biggest_code_cave(void);
 };
