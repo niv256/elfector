@@ -14,7 +14,7 @@ class Elf_target {
   std::vector<Elf64_Shdr> section_headers;
 
 public:
-  Elf_target(std::string name);
+  Elf_target(const std::string name);
   Elf_target(const Elf_target &) = delete;
 
   Elf_target &operator=(const Elf_target &) = delete;
@@ -28,19 +28,19 @@ public:
   template <typename T>
   void load_program_headers(std::vector<T> &vector, int count);
 
-  template <typename T> T get_header_type();
+  template <typename T> T get_header_type() const;
 
-  bool is_elf(void);
+  bool is_elf(void) const;
 
   struct code_cave_t {
     size_t offset;
     size_t size;
   };
 
-  code_cave_t find_biggest_code_cave(void);
+  const code_cave_t find_biggest_code_cave(void) const;
 
-  bool write_shellcode(vector<unsigned char> &shellcode,
-                       const code_cave_t &code_cave);
+  bool write_shellcode(const vector<unsigned char> &shellcode,
+                       const code_cave_t &code_cave) const;
 
   void change_entry_point(uint64_t new_entry_point);
 };

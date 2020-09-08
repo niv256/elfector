@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Elf_target::Elf_target(string name) {
+Elf_target::Elf_target(const string name) {
   fd = open(name.c_str(), O_RDWR);
   if (fd == -1) {
     throw invalid_argument{"can't open file"};
@@ -35,13 +35,13 @@ void Elf_target::load_program_headers(vector<T> &vector, int count) {
   }
 }
 
-template <typename T> T Elf_target::get_header_type() {
+template <typename T> T Elf_target::get_header_type() const {
   T object{};
   read(fd, &object, sizeof(object));
   return object;
 }
 
-bool Elf_target::is_elf(void) {
+bool Elf_target::is_elf(void) const {
   bool elf = true;
   elf &= header.e_ident[0] == ELFMAG0;
   elf &= header.e_ident[1] == ELFMAG1;
@@ -50,7 +50,7 @@ bool Elf_target::is_elf(void) {
   return elf;
 }
 
-Elf_target::code_cave_t Elf_target::find_biggest_code_cave(void) {
+const Elf_target::code_cave_t Elf_target::find_biggest_code_cave(void) const {
   lseek(fd, 0, SEEK_SET);
   size_t biggest_offset{0};
   size_t biggest_found{0};
@@ -72,8 +72,8 @@ Elf_target::code_cave_t Elf_target::find_biggest_code_cave(void) {
   return {biggest_offset, biggest_found};
 }
 
-bool Elf_target::write_shellcode(vector<unsigned char> &shellcode,
-                                 const code_cave_t &code_cave) {
+bool Elf_target::write_shellcode(const vector<unsigned char> &shellcode,
+                                 const code_cave_t &code_cave) const {
   if (code_cave.size < shellcode.size()) {
     return false;
   }

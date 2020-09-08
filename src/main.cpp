@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     return 2;
   }
 
-  Elf_target::code_cave_t code_cave = target.find_biggest_code_cave();
+  const Elf_target::code_cave_t code_cave = target.find_biggest_code_cave();
   if (!target.write_shellcode(shellcode, code_cave)) {
     cout << "can't find a big enough code cave" << endl;
     return 3;
