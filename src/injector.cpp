@@ -1,4 +1,5 @@
 #include "injector.hpp"
+#include <assert.h>
 #include <elf.h>
 #include <exception>
 #include <fcntl.h>
@@ -87,4 +88,13 @@ void Elf_target::change_entry_point(uint64_t new_entry_point) {
   header.e_entry = new_entry_point;
   lseek(fd, 0, SEEK_SET);
   write(fd, &header, sizeof(header));
+}
+
+size_t Elf_target::get_text_segment_offset(void) const {
+  for (auto ph : program_headers) {
+    if (ph.p_type == PT_LOAD) {
+      return ph.p_vaddr;
+    }
+  }
+  throw runtime_error{"could not find a PT_LOAD type program header"};
 }

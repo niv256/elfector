@@ -27,5 +27,6 @@ int main(int argc, char *argv[]) {
     cout << "can't find a big enough code cave" << endl;
     return 3;
   }
-  target.change_entry_point(0x400000 + code_cave.offset);
+  auto text_offset = target.get_text_segment_offset();
+  target.change_entry_point(text_offset + code_cave.offset);
 }

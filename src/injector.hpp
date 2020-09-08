@@ -43,4 +43,6 @@ public:
                        const code_cave_t &code_cave) const;
 
   void change_entry_point(uint64_t new_entry_point);
+
+  size_t get_text_segment_offset(void) const;
 };
