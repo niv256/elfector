@@ -1,11 +1,13 @@
+#pragma once
+
+#include "shellcode.hpp"
 #include <elf.h>
 #include <fcntl.h>
 #include <string>
 #include <vector>
 
-#pragma once
-
 using namespace std;
+using namespace shellcode;
 
 class Elf_target {
   int fd;
@@ -39,7 +41,7 @@ public:
 
   const code_cave_t find_biggest_code_cave(void) const;
 
-  bool write_shellcode(const vector<unsigned char> &shellcode,
+  void write_shellcode(const shellcode_t &shellcode,
                        const code_cave_t &code_cave) const;
 
   void change_entry_point(uint64_t new_entry_point);

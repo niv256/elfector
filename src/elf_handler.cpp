@@ -1,4 +1,4 @@
-#include "injector.hpp"
+#include "elf_handler.hpp"
 #include <assert.h>
 #include <elf.h>
 #include <exception>
@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 using namespace std;
+using namespace shellcode;
 
 Elf_target::Elf_target(const string name) {
   fd = open(name.c_str(), O_RDWR);
@@ -73,15 +74,10 @@ const Elf_target::code_cave_t Elf_target::find_biggest_code_cave(void) const {
   return {biggest_offset, biggest_found};
 }
 
-bool Elf_target::write_shellcode(const vector<unsigned char> &shellcode,
+void Elf_target::write_shellcode(const shellcode_t &shellcode,
                                  const code_cave_t &code_cave) const {
-  if (code_cave.size < shellcode.size()) {
-    return false;
-  }
-
   lseek(fd, code_cave.offset, SEEK_SET);
   write(fd, shellcode.data(), shellcode.size());
-  return true;
 }
 
 void Elf_target::change_entry_point(uint64_t new_entry_point) {
@@ -96,5 +92,6 @@ size_t Elf_target::get_text_segment_offset(void) const {
       return ph.p_vaddr;
     }
   }
-  throw runtime_error{"could not find a PT_LOAD type program header"};
+  throw runtime_error{
+      "could not find a PT_LOAD type program header.\nIs it an executable?"};
 }

@@ -4,7 +4,7 @@ LD_FLAGS:=-g
 LDLIBS:=
 RM:=rm -f
 
-SRCS:=main.cpp injector.cpp
+SRCS:=main.cpp elf_handler.cpp shellcode.cpp inject.cpp
 OBJS:=$(subst .cpp,.o,$(SRCS))
 
 all: elfector

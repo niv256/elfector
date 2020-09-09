@@ -1,32 +1,24 @@
-#include "injector.hpp"
+#include "elf_handler.hpp"
+#include "inject.hpp"
 #include <iostream>
 
 using namespace std;
-
-vector<unsigned char> shellcode{
-    0xb8, 0x40, 0x10, 0x40, 0x00, // mov eax, 0x401040
-    0xff, 0xe0                    // jmp eax
-};
+using namespace injector;
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    cout << "wrong arguments" << endl;
+    cout << "Usage: elfector [binary]" << endl;
     return 1;
   }
 
-  Elf_target target{string{argv[1]}};
+  try {
+    Elf_target target{string{argv[1]}};
+    inject(target);
 
-  target.load_headers();
-  if (!target.is_elf()) {
-    cout << "file is not elf" << endl;
-    return 2;
+    cout << "[+] injection succesfull." << endl;
+  } catch (const exception &e) {
+    cout << "[-] erorr detected: " << e.what() << endl;
+  } catch (...) {
+    cout << "[-] unknown error." << endl;
   }
-
-  const Elf_target::code_cave_t code_cave = target.find_biggest_code_cave();
-  if (!target.write_shellcode(shellcode, code_cave)) {
-    cout << "can't find a big enough code cave" << endl;
-    return 3;
-  }
-  auto text_offset = target.get_text_segment_offset();
-  target.change_entry_point(text_offset + code_cave.offset);
 }
