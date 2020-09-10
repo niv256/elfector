@@ -1,24 +1,20 @@
 #include "shellcode.hpp"
-#include <cstdio>
-#include <fcntl.h>
-#include <iostream>
-#include <unistd.h>
+#include <fstream>
 
 using namespace std;
+
+const string shellcode_file_name{"../shellcode/shellcode"};
 
 namespace shellcode {
 
 shellcode_t make_shellcode(int entry_offset) {
-  // TODO: this very no good
-  shellcode_t shellcode{};
+  // read file into shellcode
+  ifstream shellcode_file{shellcode_file_name, std::ios_base::binary};
 
-  int fd = open("../shellcode/shellcode", O_RDONLY);
-  uint8_t read_byte;
-  while (read(fd, &read_byte, 1)) {
-    shellcode.push_back(read_byte);
-  }
-  close(fd);
+  shellcode_t shellcode{istreambuf_iterator<char>(shellcode_file),
+                        istreambuf_iterator<char>()};
 
+  // 0x33 hard coded 0xdeadbeef offset
   *reinterpret_cast<int *>(&shellcode[0x33]) = entry_offset;
 
   return shellcode;
