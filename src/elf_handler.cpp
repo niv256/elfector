@@ -80,6 +80,8 @@ void Elf_target::write_shellcode(const shellcode_t &shellcode,
   write(fd, shellcode.data(), shellcode.size());
 }
 
+uint64_t Elf_target::entry_point(void) { return header.e_entry; }
+
 void Elf_target::change_entry_point(uint64_t new_entry_point) {
   header.e_entry = new_entry_point;
   lseek(fd, 0, SEEK_SET);

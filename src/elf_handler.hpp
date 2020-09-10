@@ -44,6 +44,8 @@ public:
   void write_shellcode(const shellcode_t &shellcode,
                        const code_cave_t &code_cave) const;
 
+  uint64_t entry_point(void);
+
   void change_entry_point(uint64_t new_entry_point);
 
   size_t get_text_segment_offset(void) const;

