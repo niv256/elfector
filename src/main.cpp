@@ -12,12 +12,12 @@ int main(int argc, char *argv[]) {
   }
 
   try {
-    Elf_target target{string{argv[1]}};
+    Elf_target target {string { argv[1] } };
     inject(target);
 
-    cout << "[+] injection succesfull." << endl;
+    cout << "[+] injection successfull." << endl;
   } catch (const exception &e) {
-    cout << "[-] erorr detected: " << e.what() << endl;
+    cout << "[-] error detected: " << e.what() << endl;
   } catch (...) {
     cout << "[-] unknown error." << endl;
   }

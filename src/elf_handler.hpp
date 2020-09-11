@@ -17,9 +17,9 @@ class Elf_target {
 
 public:
   Elf_target(const std::string name);
-  Elf_target(const Elf_target &) = delete;
+  Elf_target(const Elf_target &) =delete;
 
-  Elf_target &operator=(const Elf_target &) = delete;
+  Elf_target& operator=(const Elf_target&) =delete;
 
   ~Elf_target();
 
@@ -28,9 +28,10 @@ public:
   void load_main_header();
 
   template <typename T>
-  void load_program_headers(std::vector<T> &vector, size_t count);
+  void load_headers(std::vector<T> &vector, size_t count);
 
-  template <typename T> T get_header_type() const;
+  template <typename T>
+  T get_header_type() const;
 
   bool is_elf(void) const;
 

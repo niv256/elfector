@@ -7,6 +7,6 @@ using namespace std;
 
 namespace injector {
 
-void inject(Elf_target &elf);
+void inject(Elf_target& elf);
 
 }
