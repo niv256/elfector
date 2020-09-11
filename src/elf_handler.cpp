@@ -8,13 +8,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-using namespace std;
 using namespace shellcode;
 
-Elf_target::Elf_target(const string name) {
+Elf_target::Elf_target(const std::string name) {
   fd = open(name.c_str(), O_RDWR);
   if (fd == -1) {
-    throw invalid_argument { "can't open file" };
+    throw std::invalid_argument { "can't open file" };
   }
 }
 
@@ -33,7 +32,7 @@ void Elf_target::load_main_header() {
 }
 
 template <typename T>
-void Elf_target::load_headers(vector<T>& vector, size_t count) {
+void Elf_target::load_headers(std::vector<T>& vector, size_t count) {
   for (size_t i {}; i < count; i++) {
     vector.push_back(get_header_type<T>());
   }
@@ -104,7 +103,7 @@ size_t Elf_target::get_text_segment_offset(void) const {
       return ph.p_vaddr;
     }
   }
-  throw runtime_error{
+  throw std::runtime_error{
       "could not find a PT_LOAD type program header.\nIs it an executable?"};
 }
 
@@ -116,7 +115,6 @@ bool Elf_target::set_executable(uint64_t vaddr) {
              }
            )
           };
-
   if (ph == program_headers.end()) {
     return false;
   }
