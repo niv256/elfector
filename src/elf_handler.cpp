@@ -1,5 +1,5 @@
 #include "elf_handler.hpp"
-#include <assert.h>
+#include <algorithm>
 #include <elf.h>
 #include <exception>
 #include <fcntl.h>
@@ -98,4 +98,23 @@ size_t Elf_target::get_text_segment_offset(void) const {
   }
   throw runtime_error{
       "could not find a PT_LOAD type program header.\nIs it an executable?"};
+}
+
+bool Elf_target::set_executable(uint64_t vaddr) {
+  auto ph{find_if(program_headers.begin(), program_headers.end(),
+                  [=](Elf64_Phdr ph) { return ph.p_vaddr >= vaddr; })};
+  if (ph == program_headers.end()) {
+    return false;
+  }
+
+  // make executable
+  ph->p_flags |= PF_X;
+
+  // write the program header back into the file
+  auto ph_index{static_cast<size_t>(ph - program_headers.begin())};
+  auto file_offset{sizeof(Elf64_Ehdr) + ph_index * sizeof(Elf64_Phdr)};
+  lseek(fd, file_offset, SEEK_SET);
+  write(fd, &(*ph), sizeof(Elf64_Phdr));
+
+  return true;
 }

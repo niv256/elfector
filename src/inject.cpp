@@ -22,6 +22,9 @@ void inject(Elf_target &elf) {
   }
 
   elf.write_shellcode(shellcode, code_cave);
+  if (!elf.set_executable(new_entry_point)) {
+    throw runtime_error{"idk but you should probably check this"};
+  }
 
   elf.change_entry_point(new_entry_point);
 }
