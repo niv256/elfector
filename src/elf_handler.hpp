@@ -28,7 +28,7 @@ public:
   void load_main_header();
 
   template <typename T>
-  void load_program_headers(std::vector<T> &vector, int count);
+  void load_program_headers(std::vector<T> &vector, size_t count);
 
   template <typename T> T get_header_type() const;
 

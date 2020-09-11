@@ -22,8 +22,10 @@ Elf_target::~Elf_target() { close(fd); }
 
 void Elf_target::load_headers() {
   Elf_target::load_main_header();
-  Elf_target::load_program_headers(program_headers, header.e_phnum);
-  Elf_target::load_program_headers(section_headers, header.e_shnum);
+  Elf_target::load_program_headers(program_headers,
+                                   static_cast<size_t>(header.e_phnum));
+  Elf_target::load_program_headers(section_headers,
+                                   static_cast<size_t>(header.e_shnum));
 }
 
 void Elf_target::load_main_header() {
@@ -31,7 +33,7 @@ void Elf_target::load_main_header() {
 }
 
 template <typename T>
-void Elf_target::load_program_headers(vector<T> &vector, int count) {
+void Elf_target::load_program_headers(vector<T> &vector, size_t count) {
   for (size_t i{}; i < count; i++) {
     vector.push_back(get_header_type<T>());
   }
