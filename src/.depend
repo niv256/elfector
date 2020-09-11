@@ -1,4 +1,0 @@
-main.o: main.cpp elf_handler.hpp shellcode.hpp inject.hpp
-elf_handler.o: elf_handler.cpp elf_handler.hpp shellcode.hpp
-shellcode.o: shellcode.cpp shellcode.hpp
-inject.o: inject.cpp inject.hpp elf_handler.hpp shellcode.hpp

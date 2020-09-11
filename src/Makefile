@@ -1,27 +1,52 @@
-CC:=g++
-CC_FLAGS:=-std=c++1z -Wall -Wextra -pedantic -g
-LD_FLAGS:=-g
-LDLIBS:=
-RM:=rm -f
+# thanks!
+# https://gist.github.com/samuelsmal/e43f2001cfc81fee18b6
 
-SRCS:=main.cpp elf_handler.cpp shellcode.cpp inject.cpp
-OBJS:=$(subst .cpp,.o,$(SRCS))
 
-all: elfector
+# Requires the following project directory structure:
+#  /bin
+#  /obj
+#  /src
 
-elfector: $(OBJS)
-	$(CC) $(LD_FLAGS) -o elfector $(OBJS) $(LDLIBS)
+# Use 'make remove' to clean up the hole project
 
-depend: .depend
+# Name of target file
+TARGET     = elfector
 
-.depend: $(SRCS)
-	$(RM) ./.depend
-	$(CC) $(CC_FLAGS) -MM $^>>./.depend;
+CXX        = g++
+CXXFLAGS   = -std=c++17 \
+             -Wall -Wextra -Werror -Wpointer-arith -Wcast-qual \
+             -Wno-missing-braces -Wempty-body -Wno-error=uninitialized \
+             -Wno-error=deprecated-declarations \
+             -pedantic-errors -pedantic \
+             -Os
 
+LD         = clang++ -o
+LDFLAGS    = -Wall -pedantic
+
+SRCDIR     = .
+OBJDIR     = .
+BINDIR     = .
+
+SOURCES   := $(wildcard $(SRCDIR)/*.cpp)
+INCLUDES  := $(wildcard $(SRCDIR)/*.h)
+OBJECTS   := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+
+RM         = rm -f
+
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	@$(LD) $@ $(LDFLAGS) $(OBJECTS)
+	@echo "Linking complete!"
+
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
+
+.PHONY: clean
 clean:
-	$(RM) $(OBJS)
+	@$(RM) $(OBJECTS)
+	@echo "Cleanup complete!"
 
-distclean: clean
-	$(RM) *~ .depend
-
-include .depend
+.PHONY: remove
+remove: clean
+	@$(RM) $(BINDIR)/$(TARGET)
+	@echo "Executable removed!"
