@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
   }
 
   try {
-    Elf_target target {std::string { argv[1] } };
+    Elf_target target { argv[1] };
     inject(target);
 
     std::cout << "[+] injection successfull." << std::endl;

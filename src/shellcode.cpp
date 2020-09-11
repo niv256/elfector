@@ -3,7 +3,7 @@
 #include <array>
 #include <fstream>
 
-const std::string shellcode_file_name { "../shellcode/shellcode" };
+static const std::string shellcode_file_name { "../shellcode/shellcode" };
 
 namespace shellcode {
 

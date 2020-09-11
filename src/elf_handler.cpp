@@ -10,25 +10,74 @@
 
 using namespace shellcode;
 
-Elf_target::Elf_target(const std::string name) {
-  fd = open(name.c_str(), O_RDWR);
-  if (fd == -1) {
+Elf_target::Elf_target(const char *name)
+  : m_fd { open(name, O_RDWR) } {
+  if (m_fd == -1) {
     throw std::invalid_argument { "can't open file" };
+  }
+
+  load_headers();
+
+  if (!is_elf()) {
+    throw std::invalid_argument { "file is not elf" };
   }
 }
 
 Elf_target::~Elf_target() {
-  close(fd);
+  close(m_fd);
+}
+
+uint64_t Elf_target::entry_point(void) const {
+  return header.e_entry ;
+}
+
+void Elf_target::change_entry_point(uint64_t new_entry_point) {
+  header.e_entry = new_entry_point;
+  lseek(m_fd, 0, SEEK_SET);
+  write(m_fd, &header, sizeof(header));
+}
+
+size_t Elf_target::get_text_segment_offset(void) const {
+  for (const auto& ph : m_program_headers) {
+    if (ph.p_type == PT_LOAD) {
+      // first PT_LOAD program header
+      return ph.p_vaddr;
+    }
+  }
+  throw std::runtime_error{
+      "could not find a PT_LOAD type program header.\nIs it an executable?"};
+}
+
+void Elf_target::set_executable(uint64_t vaddr) {
+  auto ph {find_if(m_program_headers.begin(),
+           m_program_headers.end(),
+           [=] (Elf64_Phdr ph) {
+               return ph.p_vaddr >= vaddr;
+             }
+           )
+          };
+  if (ph == m_program_headers.end()) {
+    throw std::runtime_error { "idk but you should probably check this" };
+  }
+
+  // make executable
+  ph->p_flags |= PF_X;
+
+  // write the program header back into the file
+  auto ph_index {static_cast<size_t>(ph - m_program_headers.begin()) };
+  auto file_offset {sizeof(Elf64_Ehdr) + ph_index * sizeof(Elf64_Phdr) };
+  lseek(m_fd, file_offset, SEEK_SET);
+  write(m_fd, &(*ph), sizeof(Elf64_Phdr));
 }
 
 void Elf_target::load_headers() {
   load_main_header();
-  load_headers(program_headers, static_cast<size_t>(header.e_phnum));
-  load_headers(section_headers, static_cast<size_t>(header.e_shnum));
+  load_headers(m_program_headers, static_cast<size_t>(header.e_phnum));
+  load_headers(m_section_headers, static_cast<size_t>(header.e_shnum));
 }
 
 void Elf_target::load_main_header() {
-  read(fd, static_cast<void*>(&header), sizeof(Elf64_Ehdr));
+  read(m_fd, static_cast<void*>(&header), sizeof(Elf64_Ehdr));
 }
 
 template <typename T>
@@ -40,7 +89,7 @@ void Elf_target::load_headers(std::vector<T>& vector, size_t count) {
 
 template <typename T> T Elf_target::get_header_type() const {
   T object {};
-  read(fd, &object, sizeof(object));
+  read(m_fd, &object, sizeof(object));
   return object;
 }
 
@@ -64,14 +113,14 @@ const Elf_target::code_cave_t Elf_target::find_biggest_code_cave(void) const {
    * else, update biggest size found and its offset if needed,
    * and reset cur_cave counter.
    */
-  lseek(fd, 0, SEEK_SET);
-  while (read(fd, &byte, 1)) {
+  lseek(m_fd, 0, SEEK_SET);
+  while (read(m_fd, &byte, 1)) {
     if (byte == '\0') {
       cur_cave++;
     } else {
       if (cur_cave > biggest_found) {
         biggest_found = cur_cave;
-        biggest_offset = lseek(fd, 0, SEEK_CUR) - cur_cave;
+        biggest_offset = lseek(m_fd, 0, SEEK_CUR) - cur_cave;
       }
       cur_cave = 0;
     }
@@ -81,52 +130,7 @@ const Elf_target::code_cave_t Elf_target::find_biggest_code_cave(void) const {
 }
 
 void Elf_target::write_shellcode(const shellcode_t &shellcode,
-                                 const code_cave_t &code_cave) const {
-  lseek(fd, code_cave.offset, SEEK_SET);
-  write(fd, shellcode.data(), shellcode.size());
-}
-
-uint64_t Elf_target::entry_point(void) {
-  return header.e_entry;
-}
-
-void Elf_target::change_entry_point(uint64_t new_entry_point) {
-  header.e_entry = new_entry_point;
-  lseek(fd, 0, SEEK_SET);
-  write(fd, &header, sizeof(header));
-}
-
-size_t Elf_target::get_text_segment_offset(void) const {
-  for (auto ph : program_headers) {
-    if (ph.p_type == PT_LOAD) {
-      // first PT_LOAD program header
-      return ph.p_vaddr;
-    }
-  }
-  throw std::runtime_error{
-      "could not find a PT_LOAD type program header.\nIs it an executable?"};
-}
-
-bool Elf_target::set_executable(uint64_t vaddr) {
-  auto ph {find_if(program_headers.begin(),
-           program_headers.end(),
-           [=] (Elf64_Phdr ph) {
-               return ph.p_vaddr >= vaddr;
-             }
-           )
-          };
-  if (ph == program_headers.end()) {
-    return false;
-  }
-
-  // make executable
-  ph->p_flags |= PF_X;
-
-  // write the program header back into the file
-  auto ph_index {static_cast<size_t>(ph - program_headers.begin()) };
-  auto file_offset {sizeof(Elf64_Ehdr) + ph_index * sizeof(Elf64_Phdr) };
-  lseek(fd, file_offset, SEEK_SET);
-  write(fd, &(*ph), sizeof(Elf64_Phdr));
-
-  return true;
+                                 const code_cave_t &code_cave) {
+  lseek(m_fd, code_cave.offset, SEEK_SET);
+  write(m_fd, shellcode.data(), shellcode.size());
 }
